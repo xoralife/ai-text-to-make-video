@@ -2,12 +2,13 @@ import os
 import logging
 
 from fastapi import FastAPI, BackgroundTasks, HTTPException
+from fastapi.responses import RedirectResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 from dotenv import load_dotenv
 
-from job_store import create_job, update_job, get_job
+from job_store import create_job, update_job, get_job, list_jobs
 
 load_dotenv()
 
@@ -22,6 +23,12 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 app = FastAPI(title="AI Text-to-Video Generator")
+
+
+@app.on_event("startup")
+def startup():
+    os.makedirs("static/videos", exist_ok=True)
+    logger.info("static/videos directory ready")
 
 app.add_middleware(
     CORSMiddleware,
@@ -92,6 +99,16 @@ async def status(job_id: str):
     if job is None:
         raise HTTPException(status_code=404, detail="Job not found")
     return StatusResponse(**job)
+
+
+@app.get("/")
+async def root():
+    return RedirectResponse(url="/docs")
+
+
+@app.get("/api/jobs")
+async def jobs_list():
+    return list_jobs()
 
 
 @app.get("/health")

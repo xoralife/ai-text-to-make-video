@@ -34,3 +34,10 @@ def update_job(
 
 def get_job(job_id: str) -> Optional[dict]:
     return jobs.get(job_id)
+
+
+def list_jobs() -> list[dict]:
+    return [
+        {"job_id": jid, **data}
+        for jid, data in jobs.items()
+    ]
