@@ -1,4 +1,3 @@
-import os
 import logging
 
 logger = logging.getLogger(__name__)
@@ -7,13 +6,13 @@ logger = logging.getLogger(__name__)
 def generate_local_video(prompt: str, output_path: str) -> None:
     from PIL import Image, ImageDraw, ImageFont
     import numpy as np
+    import imageio
 
     width, height = 1920, 1080
     fps = 24
     duration = 8
     total_frames = duration * fps
 
-    frames = []
     words = prompt.split()
     chunk_size = max(1, len(words) // 5)
 
@@ -23,6 +22,10 @@ def generate_local_video(prompt: str, output_path: str) -> None:
     except (OSError, IOError):
         font_title = ImageFont.load_default()
         font_sub = ImageFont.load_default()
+
+    writer = imageio.get_writer(
+        output_path, fps=fps, codec="libx264", quality=8
+    )
 
     for frame_idx in range(total_frames):
         t = frame_idx / fps
@@ -45,19 +48,19 @@ def generate_local_video(prompt: str, output_path: str) -> None:
         start_y = center_y - (len(lines) * line_h) // 2
 
         for li, line in enumerate(lines):
-            alpha = max(0, min(255, int((progress * 6 - li) * 80)))
-            if alpha <= 0:
+            alpha_factor = max(0, min(1, (progress * 6 - li) * 0.3))
+            if alpha_factor <= 0:
                 continue
 
             char_count = int(len(line) * min(1, (progress * 6 - li) * 1.2))
             display_text = line[:char_count]
 
-            text_color = (255, 255, 255)
             bbox = draw.textbbox((0, 0), display_text, font=font_title)
             tw = bbox[2] - bbox[0]
             x = center_x - tw // 2
             y = start_y + li * line_h
 
+            text_color = (int(255 * alpha_factor),) * 3
             draw.text((x, y), display_text, font=font_title, fill=text_color)
 
         footer_text = "Powered by AI"
@@ -93,15 +96,7 @@ def generate_local_video(prompt: str, output_path: str) -> None:
             width=2,
         )
 
-        frames.append(np.array(img))
+        writer.append_data(np.array(img))
 
-    import numpy as np_full
-
-    try:
-        from moviepy import ImageSequenceClip
-    except ImportError:
-        from moviepy.video.io.ImageSequenceClip import ImageSequenceClip
-
-    clip = ImageSequenceClip(frames, fps=fps)
-    clip.write_videofile(output_path, codec="libx264", audio=False, logger=None)
+    writer.close()
     logger.info("Local video saved to %s", output_path)
