@@ -8,7 +8,7 @@ def generate_local_video(prompt: str, output_path: str) -> None:
     import numpy as np
     import imageio
 
-    width, height = 1920, 1080
+    width, height = 1920, 1088
     fps = 24
     duration = 8
     total_frames = duration * fps
