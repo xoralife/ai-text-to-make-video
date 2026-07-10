@@ -62,17 +62,20 @@ class StatusResponse(BaseModel):
 
 
 def generate_video(job_id: str, prompt: str) -> None:
-    from huggingface_hub import InferenceClient
+    import requests
 
     logger.info("Job %s started for prompt: %.80s", job_id, prompt)
     update_job(job_id, "processing")
 
     try:
-        client = InferenceClient(api_key=HF_TOKEN)
-        video_data = client.text_to_video(
-            prompt,
-            model="Wan-AI/Wan2.2-TI2V-5B",
+        response = requests.post(
+            "https://api-inference.huggingface.co/models/Wan-AI/Wan2.2-TI2V-5B",
+            headers={"Authorization": f"Bearer {HF_TOKEN}"},
+            json={"inputs": prompt},
+            timeout=180,
         )
+        response.raise_for_status()
+        video_data = response.content
 
         output_path = os.path.join("static", "videos", f"{job_id}.mp4")
         with open(output_path, "wb") as f:
