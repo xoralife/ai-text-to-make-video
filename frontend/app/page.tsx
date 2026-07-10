@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import { Sparkles } from "lucide-react";
 import PromptForm from "./components/PromptForm";
 import GenerationStatus from "./components/GenerationStatus";
 import VideoResult from "./components/VideoResult";
@@ -59,8 +60,8 @@ export default function Home() {
             stopPolling();
             setBusy(false);
             setHistory((prev) => [
-              ...prev,
               { prompt: "", videoUrl: data.video_url, status: "completed" },
+              ...prev,
             ]);
             setJobId(null);
           } else if (data.status === "failed") {
@@ -68,15 +69,17 @@ export default function Home() {
             setBusy(false);
             setError(data.error || "Generation failed");
             setHistory((prev) => [
-              ...prev,
               { prompt: "", videoUrl: null, status: "failed" },
+              ...prev,
             ]);
             setJobId(null);
           }
         } catch {
           stopPolling();
           setBusy(false);
-          setError("Network error: Backend unreachable. Make sure the server is running.");
+          setError(
+            "Unable to reach the generation server. Please check that the backend is running."
+          );
           setJobId(null);
         }
       }, 3000);
@@ -101,8 +104,8 @@ export default function Home() {
       const { job_id } = await res.json();
       setJobId(job_id);
       setHistory((prev) => [
-        ...prev,
         { prompt, videoUrl: null, status: "pending" },
+        ...prev,
       ]);
 
       statusTimerRef.current = setInterval(() => {
@@ -112,23 +115,25 @@ export default function Home() {
       pollStatus(job_id);
     } catch {
       setBusy(false);
-      setError("Network error: Backend unreachable. Make sure the server is running.");
+      setError(
+        "Unable to reach the generation server. Please check that the backend is running."
+      );
     }
   };
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-2xl flex-col items-center px-4 py-12">
-      <div className="w-full space-y-8">
-        <div className="text-center">
-          <h1 className="text-3xl font-bold text-white">
-            AI Text-to-Video Generator
+    <div className="max-w-app mx-auto px-8 py-12 max-md:px-6 max-sm:px-4">
+      <div className="max-w-[640px] mx-auto space-y-10">
+        <div className="space-y-2">
+          <h1 className="text-4xl font-semibold tracking-tight">
+            Generate Video
           </h1>
-          <p className="mt-2 text-gray-400">
+          <p className="text-text-secondary text-base">
             Turn your ideas into videos with AI
           </p>
         </div>
 
-        <div className="rounded-xl border border-gray-800 bg-gray-900 p-6 shadow-xl">
+        <div className="card p-6">
           <PromptForm onSubmit={handleSubmit} disabled={busy} />
         </div>
 
@@ -137,28 +142,11 @@ export default function Home() {
         )}
 
         {busy && jobStatus?.status === "pending" && (
-          <div className="flex flex-col items-center gap-2 rounded-lg border border-gray-700 bg-gray-800 p-6">
-            <svg
-              className="h-8 w-8 animate-spin text-yellow-500"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-            >
-              <circle
-                className="opacity-25"
-                cx="12"
-                cy="12"
-                r="10"
-                stroke="currentColor"
-                strokeWidth="4"
-              />
-              <path
-                className="opacity-75"
-                fill="currentColor"
-                d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
-              />
-            </svg>
-            <p className="text-gray-300">Job queued... waiting for worker</p>
+          <div className="card flex flex-col items-center gap-3 p-8">
+            <div className="w-8 h-8 border-2 border-text-muted border-t-white rounded-full animate-spin" />
+            <p className="text-text-secondary text-sm">
+              Job queued... waiting for worker
+            </p>
           </div>
         )}
 
@@ -167,12 +155,13 @@ export default function Home() {
         )}
 
         {error && (
-          <div className="rounded-lg border border-red-800 bg-red-900/50 p-4">
-            <p className="text-red-300">{error}</p>
+          <div className="card border-red-900/50 bg-red-950/30 p-6">
+            <p className="text-red-400 text-sm">{error}</p>
             <button
               onClick={() => setError(null)}
-              className="mt-2 rounded bg-red-700 px-4 py-1 text-sm text-white transition hover:bg-red-600"
+              className="btn-secondary mt-4 text-sm flex items-center gap-2"
             >
+              <Sparkles className="w-4 h-4" />
               Try Again
             </button>
           </div>
@@ -180,6 +169,6 @@ export default function Home() {
 
         <HistoryList entries={history} apiUrl={API_URL} />
       </div>
-    </main>
+    </div>
   );
 }

@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import Sidebar from "./components/Sidebar";
 
 export const metadata: Metadata = {
-  title: "AI Text-to-Video Generator",
-  description: "Generate videos from text prompts using AI",
+  title: "VideoForge — AI Text-to-Video Generator",
+  description: "Turn your ideas into videos with AI",
 };
 
 export default function RootLayout({
@@ -13,7 +14,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className="dark">
-      <body>{children}</body>
+      <body className="flex">
+        <Sidebar />
+        <main className="flex-1 ml-[240px] min-h-screen">{children}</main>
+      </body>
     </html>
   );
 }

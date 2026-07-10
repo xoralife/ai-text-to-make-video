@@ -17,6 +17,11 @@ venv/
 .vscode/
 .idea/
 
+# Node / Next.js
+node_modules/
+.frontend/node_modules/
+.next/
+
 # OS
 .DS_Store
 Thumbs.db
