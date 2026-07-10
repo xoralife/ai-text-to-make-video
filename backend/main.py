@@ -68,10 +68,7 @@ def generate_video(job_id: str, prompt: str) -> None:
     update_job(job_id, "processing")
 
     try:
-        client = InferenceClient(
-            provider="fal-ai",
-            api_key=HF_TOKEN,
-        )
+        client = InferenceClient(api_key=HF_TOKEN)
         video_data = client.text_to_video(
             prompt,
             model="Wan-AI/Wan2.2-TI2V-5B",
@@ -86,7 +83,7 @@ def generate_video(job_id: str, prompt: str) -> None:
         logger.info("Job %s completed successfully", job_id)
 
     except Exception as exc:
-        logger.error("Job %s failed: %s", job_id, exc)
+        logger.error("Job %s failed: %s", job_id, exc, exc_info=True)
         update_job(job_id, "failed", error=str(exc))
 
 
