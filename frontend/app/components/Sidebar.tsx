@@ -1,16 +1,19 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import {
   Sparkles,
   History,
   Settings,
   PanelLeftClose,
   PanelLeft,
+  Home,
 } from "lucide-react";
 
 const navItems = [
-  { label: "Generate", icon: Sparkles, href: "#" },
+  { label: "Home", icon: Home, href: "/" },
+  { label: "Generate", icon: Sparkles, href: "/generate" },
   { label: "History", icon: History, href: "#" },
   { label: "Settings", icon: Settings, href: "#" },
 ];
@@ -26,9 +29,12 @@ export default function Sidebar() {
     >
       <div className="flex items-center justify-between px-4 h-16 border-b border-border">
         {!collapsed && (
-          <span className="font-heading font-semibold text-sm text-text-primary tracking-tight">
+          <Link
+            href="/"
+            className="font-heading font-semibold text-sm text-text-primary tracking-tight"
+          >
             VideoForge
-          </span>
+          </Link>
         )}
         <button
           onClick={() => setCollapsed((c) => !c)}
@@ -44,7 +50,7 @@ export default function Sidebar() {
 
       <nav className="flex-1 flex flex-col gap-1 p-3">
         {navItems.map((item) => (
-          <a
+          <Link
             key={item.label}
             href={item.href}
             className="flex items-center gap-3 rounded-[10px] px-3 py-2.5 text-text-secondary hover:text-text-primary hover:bg-accent-hover transition-all duration-200"
@@ -53,7 +59,7 @@ export default function Sidebar() {
             {!collapsed && (
               <span className="text-sm font-medium">{item.label}</span>
             )}
-          </a>
+          </Link>
         ))}
       </nav>
 
