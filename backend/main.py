@@ -63,27 +63,42 @@ class StatusResponse(BaseModel):
 
 def generate_video(job_id: str, prompt: str) -> None:
     import requests
+    import socket
 
     logger.info("Job %s started for prompt: %.80s", job_id, prompt)
     update_job(job_id, "processing")
+
+    output_path = os.path.join("static", "videos", f"{job_id}.mp4")
 
     try:
         response = requests.post(
             "https://api-inference.huggingface.co/models/Wan-AI/Wan2.2-TI2V-5B",
             headers={"Authorization": f"Bearer {HF_TOKEN}"},
             json={"inputs": prompt},
-            timeout=180,
+            timeout=60,
         )
         response.raise_for_status()
         video_data = response.content
 
-        output_path = os.path.join("static", "videos", f"{job_id}.mp4")
         with open(output_path, "wb") as f:
             f.write(video_data)
 
         video_url = f"/static/videos/{job_id}.mp4"
         update_job(job_id, "completed", video_url=video_url)
-        logger.info("Job %s completed successfully", job_id)
+        logger.info("Job %s completed successfully (HF API)", job_id)
+
+    except (requests.exceptions.ConnectionError, socket.gaierror, socket.herror):
+        logger.warning("HF API unreachable, falling back to local generator")
+        try:
+            from local_generator import generate_local_video
+
+            generate_local_video(prompt, output_path)
+            video_url = f"/static/videos/{job_id}.mp4"
+            update_job(job_id, "completed", video_url=video_url)
+            logger.info("Job %s completed successfully (local)", job_id)
+        except Exception as local_err:
+            logger.error("Local generation failed: %s", local_err, exc_info=True)
+            update_job(job_id, "failed", error=f"Local generation error: {local_err}")
 
     except Exception as exc:
         logger.error("Job %s failed: %s", job_id, exc, exc_info=True)
